@@ -10,7 +10,4 @@ import lombok.*;
 public class CustomMessage {
     private String message;
     private boolean success = false;
-
-
-
 }

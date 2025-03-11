@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
-
 function VideoUpload() {
+  
   const [selectedFile, setSelectedFile] = useState(null);
   const [meta, setMeta] = useState({ title: "", description: "" });
   const [progress, setProgress] = useState(0);
@@ -50,6 +50,9 @@ function VideoUpload() {
             (progressEvent.loaded / progressEvent.total) * 100
           );
           setProgress(progress);
+          if(progress==100){
+            setMessage('Processing Video, Please wait...')
+          }
         },
       });
       setMessage('File uploaded successfully');
@@ -125,6 +128,7 @@ function VideoUpload() {
           {message}
         </div>
       </form>
+      <button ></button>
     </div>
   );
 }

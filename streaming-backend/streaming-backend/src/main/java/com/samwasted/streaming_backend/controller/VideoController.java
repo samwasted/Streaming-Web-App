@@ -163,8 +163,7 @@ public class VideoController {
     public ResponseEntity<Resource> serverMasterFile(
             @PathVariable String videoId
     ) {
-
-//        creating path
+        // Create path for master playlist
         Path path = Paths.get(HLS_DIR, videoId, "master.m3u8");
 
         System.out.println(path);
@@ -181,20 +180,41 @@ public class VideoController {
                         HttpHeaders.CONTENT_TYPE, "application/vnd.apple.mpegurl"
                 )
                 .body(resource);
-
-
     }
 
-    //serve the segments
+    // Serve the variant playlists
+    @GetMapping("/{videoId}/{variant}/playlist.m3u8")
+    public ResponseEntity<Resource> serveVariantPlaylist(
+            @PathVariable String videoId,
+            @PathVariable String variant
+    ) {
+        // Create path for variant playlist
+        Path path = Paths.get(HLS_DIR, videoId, variant, "playlist.m3u8");
 
-    @GetMapping("/{videoId}/{segment}.ts")
+        if (!Files.exists(path)) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        Resource resource = new FileSystemResource(path);
+
+        return ResponseEntity
+                .ok()
+                .header(
+                        HttpHeaders.CONTENT_TYPE, "application/vnd.apple.mpegurl"
+                )
+                .body(resource);
+    }
+
+    // Serve the segments
+    @GetMapping("/{videoId}/{variant}/segment_{segment}.ts")
     public ResponseEntity<Resource> serveSegments(
             @PathVariable String videoId,
+            @PathVariable String variant,
             @PathVariable String segment
     ) {
+        // Create path for segment in specific variant folder
+        Path path = Paths.get(HLS_DIR, videoId, variant, "segment_" + segment + ".ts");
 
-        // create path for segment
-        Path path = Paths.get(HLS_DIR, videoId, segment + ".ts");
         if (!Files.exists(path)) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -207,7 +227,8 @@ public class VideoController {
                         HttpHeaders.CONTENT_TYPE, "video/mp2t"
                 )
                 .body(resource);
-
     }
+
+
 
 }
