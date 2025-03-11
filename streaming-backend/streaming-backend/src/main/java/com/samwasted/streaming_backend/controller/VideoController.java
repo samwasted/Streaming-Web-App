@@ -3,6 +3,7 @@ package com.samwasted.streaming_backend.controller;
 import com.samwasted.streaming_backend.entities.Video;
 import com.samwasted.streaming_backend.playload.CustomMessage;
 import com.samwasted.streaming_backend.services.AppConstants;
+import com.samwasted.streaming_backend.services.VideoDurationService;
 import com.samwasted.streaming_backend.services.VideoService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.*;
@@ -21,19 +22,23 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 @RestController
 @RequestMapping("api/v1/videos")
-@CrossOrigin("*")
+@CrossOrigin(origins = "http://localhost:5173")
 public class VideoController {
 
     private final VideoService videoService;
+    private final VideoDurationService durationService;
 
-    public VideoController(VideoService videoService) {
+    public VideoController(VideoService videoService, VideoDurationService durationService) {
         this.videoService = videoService;
+        this.durationService = durationService;
     }
-    //for uploading videos
+
+    // For uploading videos
     @PostMapping
     public ResponseEntity<?> create(
             @RequestParam("file") MultipartFile file,
@@ -49,109 +54,173 @@ public class VideoController {
         if(savedVideo != null) {
             return ResponseEntity.status(HttpStatus.OK).body(video);
 
-        }else{
+        } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CustomMessage.builder()
                     .message("Video not uploaded")
                     .success(false)
                     .build()
-                    );
+            );
         }
-
     }
-    // for all vids
+
+    // Get all videos with duration
     @GetMapping
     public List<Video> getAll(){
-        return videoService.getAll();
+        List<Video> videos = videoService.getAll();
+
+        // Calculate and set duration for each video if not already available
+        return videos.stream().map(video -> {
+            if (video.getDuration() == null) {
+                // Try to get duration using FFprobe
+                Double duration = durationService.getVideoDuration(video.getVideoId());
+
+                // If FFprobe fails, try the M3U8 parsing method as fallback
+                if (duration == null) {
+                    duration = durationService.getDurationFromM3U8(video.getVideoId());
+                }
+
+                if (duration != null) {
+                    video.setDuration(duration);
+                    videoService.updateVideo(video); // Assuming you have a method to update the video
+                }
+            }
+            return video;
+        }).collect(Collectors.toList());
     }
-    //for streaming videos
-    @GetMapping("/stream/{videoId}")
-    public ResponseEntity<Resource> stream(@PathVariable String videoId){
+
+    // Get video duration by ID
+    @GetMapping("/{videoId}/duration")
+    public ResponseEntity<?> getVideoDuration(@PathVariable String videoId) {
         Video video = videoService.get(videoId);
 
-        String contentType = video.getContentType();
-        String filePath = video.getFilePath();
-
-        Resource resource = new FileSystemResource(filePath);
-
-        if(contentType==null){
-            contentType = "application/octet-stream";
+        if (video == null) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity
-                .ok()
-                .contentType(MediaType.parseMediaType(contentType))
-                .body(resource);
+
+        // If duration is already available in the database, return it
+        if (video.getDuration() != null) {
+            return ResponseEntity.ok().body(
+                    CustomMessage.builder()
+                            .message("Video duration fetched successfully")
+                            .success(true)
+                            .data(video.getDuration())
+                            .build()
+            );
+        }
+
+        // Try to calculate duration
+        Double duration = durationService.getVideoDuration(videoId);
+
+        if (duration == null) {
+            // Try alternative method if FFprobe failed
+            duration = durationService.getDurationFromM3U8(videoId);
+        }
+
+        if (duration != null) {
+            // Update video with the calculated duration
+            video.setDuration(duration);
+            videoService.updateVideo(video); // Assuming you have a method to update the video
+
+            return ResponseEntity.ok().body(
+                    CustomMessage.builder()
+                            .message("Video duration calculated successfully")
+                            .success(true)
+                            .data(duration)
+                            .build()
+            );
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    CustomMessage.builder()
+                            .message("Could not determine video duration")
+                            .success(false)
+                            .build()
+            );
+        }
     }
 
-    //stream in chunks
-    @GetMapping("/stream/range/{videoId}")
-    public ResponseEntity<Resource> streamRange(
-            @PathVariable String videoId,
-            @RequestHeader(value = "Range", required = false) String range ) throws IOException {
-            System.out.println(range);
+    // --- All the existing methods remain the same ---
 
-            Video video = videoService.get(videoId);
-            Path path = Paths.get(video.getFilePath());
-
-            Resource resource = new FileSystemResource(path);
-
-            String contentType = video.getContentType();
-            if(contentType==null){
-                contentType = "application/octet-stream";
-            }
-            //file length
-            long fileLength = path.toFile().length();
-
-            if(range == null){
-                return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(contentType))
-                        .body(resource); //pehle jaisa unedited bhejdia
-            }
-            long rangeStart;
-            long rangeEnd;
-
-            String[] ranges = range.replace("bytes=", "").split("-");
-            rangeStart = Long.parseLong(ranges[0]);
-            rangeEnd = rangeStart + AppConstants.CHUNK_SIZE-1;
-            if(rangeEnd > fileLength-1){
-                rangeEnd = fileLength-1;
-            }
-//            if(ranges.length >1){
-//                rangeEnd = Long.parseLong(ranges[1]);
-//            } else{
-//                rangeEnd = fileLength-1;
-//            }
-//            if(rangeEnd > fileLength-1){
-//                rangeEnd = fileLength-1;
-//            }
-
-            InputStream inputStream;
-
-            try{
-                inputStream = new FileInputStream(path.toFile());
-                inputStream.skip(rangeStart);
-            } catch(IOException ex){
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-            }
-            long contentLength = rangeEnd - rangeStart + 1;
-
-            byte[] data = new byte[(int)contentLength];
-            int read = inputStream.read(data,0, data.length);
-            System.out.println("read(number of bytes) : "+ read);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.add("Content-Range", "bytes "+rangeStart+"-"+rangeEnd+"/"+fileLength);
-            headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
-            headers.add("Pragma", "no-cache");
-            headers.add("Expires", "0");
-            headers.add("X-Content-Type-Options", "nosniff"); //for security purposes
-            headers.setContentLength(contentLength);
-
-            return ResponseEntity
-                    .status(HttpStatus.PARTIAL_CONTENT)
-                    .headers(headers)
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .body(new ByteArrayResource(data));
-    }
+    //for streaming videos
+//    @GetMapping("/stream/{videoId}")
+//    public ResponseEntity<Resource> stream(@PathVariable String videoId){ // also not using this
+//        Video video = videoService.get(videoId);
+//
+//        String contentType = video.getContentType();
+//        String filePath = video.getFilePath();
+//
+//        Resource resource = new FileSystemResource(filePath);
+//
+//        if(contentType==null){
+//            contentType = "application/octet-stream";
+//        }
+//        return ResponseEntity
+//                .ok()
+//                .contentType(MediaType.parseMediaType(contentType))
+//                .body(resource);
+//    }
+//
+//    //stream in chunks
+//    @GetMapping("/stream/range/{videoId}")
+//    public ResponseEntity<Resource> streamRange( // not using this method Now
+//            @PathVariable String videoId,
+//            @RequestHeader(value = "Range", required = false) String range ) throws IOException {
+//        System.out.println(range);
+//
+//        Video video = videoService.get(videoId);
+//        Path path = Paths.get(video.getFilePath());
+//
+//        Resource resource = new FileSystemResource(path);
+//
+//        String contentType = video.getContentType();
+//        if(contentType==null){
+//            contentType = "application/octet-stream";
+//        }
+//        //file length
+//        long fileLength = path.toFile().length();
+//
+//        if(range == null){
+//            return ResponseEntity.ok()
+//                    .contentType(MediaType.parseMediaType(contentType))
+//                    .body(resource); //pehle jaisa unedited bhejdia
+//        }
+//        long rangeStart;
+//        long rangeEnd;
+//
+//        String[] ranges = range.replace("bytes=", "").split("-");
+//        rangeStart = Long.parseLong(ranges[0]);
+//        rangeEnd = rangeStart + AppConstants.CHUNK_SIZE-1;
+//        if(rangeEnd > fileLength-1){
+//            rangeEnd = fileLength-1;
+//        }
+//
+//        InputStream inputStream;
+//
+//        try{
+//            inputStream = new FileInputStream(path.toFile());
+//            inputStream.skip(rangeStart);
+//        } catch(IOException ex){
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+//        }
+//        long contentLength = rangeEnd - rangeStart + 1;
+//
+//        byte[] data = new byte[(int)contentLength];
+//        int read = inputStream.read(data,0, data.length);
+//        System.out.println("read(number of bytes) : "+ read);
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.add("Content-Range", "bytes "+rangeStart+"-"+rangeEnd+"/"+fileLength);
+//        headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+//        headers.add("Pragma", "no-cache");
+//        headers.add("Expires", "0");
+//        headers.add("X-Content-Type-Options", "nosniff"); //for security purposes
+//        headers.setContentLength(contentLength);
+//
+//        return ResponseEntity
+//                .status(HttpStatus.PARTIAL_CONTENT)
+//                .headers(headers)
+//                .contentType(MediaType.parseMediaType(contentType))
+//                .body(new ByteArrayResource(data));
+//    }
     //serve hls playlist
 
     //master.m2u8 file
@@ -163,8 +232,7 @@ public class VideoController {
     public ResponseEntity<Resource> serverMasterFile(
             @PathVariable String videoId
     ) {
-
-//        creating path
+        // Create path for master playlist
         Path path = Paths.get(HLS_DIR, videoId, "master.m3u8");
 
         System.out.println(path);
@@ -181,20 +249,41 @@ public class VideoController {
                         HttpHeaders.CONTENT_TYPE, "application/vnd.apple.mpegurl"
                 )
                 .body(resource);
-
-
     }
 
-    //serve the segments
+    // Serve the variant playlists
+    @GetMapping("/{videoId}/{variant}/playlist.m3u8")
+    public ResponseEntity<Resource> serveVariantPlaylist(
+            @PathVariable String videoId,
+            @PathVariable String variant
+    ) {
+        // Create path for variant playlist
+        Path path = Paths.get(HLS_DIR, videoId, variant, "playlist.m3u8");
 
-    @GetMapping("/{videoId}/{segment}.ts")
+        if (!Files.exists(path)) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        Resource resource = new FileSystemResource(path);
+
+        return ResponseEntity
+                .ok()
+                .header(
+                        HttpHeaders.CONTENT_TYPE, "application/vnd.apple.mpegurl"
+                )
+                .body(resource);
+    }
+
+    // Serve the segments
+    @GetMapping("/{videoId}/{variant}/segment_{segment}.ts")
     public ResponseEntity<Resource> serveSegments(
             @PathVariable String videoId,
+            @PathVariable String variant,
             @PathVariable String segment
     ) {
+        // Create path for segment in specific variant folder
+        Path path = Paths.get(HLS_DIR, videoId, variant, "segment_" + segment + ".ts");
 
-        // create path for segment
-        Path path = Paths.get(HLS_DIR, videoId, segment + ".ts");
         if (!Files.exists(path)) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -207,7 +296,5 @@ public class VideoController {
                         HttpHeaders.CONTENT_TYPE, "video/mp2t"
                 )
                 .body(resource);
-
     }
-
 }

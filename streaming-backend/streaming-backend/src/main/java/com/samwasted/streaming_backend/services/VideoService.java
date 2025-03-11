@@ -17,4 +17,6 @@ public interface VideoService {
 
     //video processing
     String processVideo(String videoId);
+
+    Video updateVideo(Video video);
 }

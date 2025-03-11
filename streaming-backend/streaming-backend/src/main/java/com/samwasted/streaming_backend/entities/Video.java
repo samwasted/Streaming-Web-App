@@ -23,7 +23,6 @@ public class Video {
     private String description;
     private String contentType;
     private String filePath;
+    private Double duration;
 
-    @ManyToOne
-    private Course course;
 }
