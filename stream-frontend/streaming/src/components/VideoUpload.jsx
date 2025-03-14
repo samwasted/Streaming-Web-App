@@ -50,6 +50,9 @@ function VideoUpload() {
             (progressEvent.loaded / progressEvent.total) * 100
           );
           setProgress(progress);
+          if(progress === 100){
+            setMessage('Processing Video, Please wait...')
+          }
         },
       });
       setMessage('File uploaded successfully');
@@ -67,63 +70,101 @@ function VideoUpload() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row items-center gap-4 p-4 bg-gray-100 dark:bg-gray-500 rounded-lg">
+    <div className="w-full max-w-2xl mx-auto rounded-lg bg-black p-6 shadow-lg border border-blue-600">
+      <h2 className="text-2xl font-bold text-blue-400 mb-6 text-center">Upload Video</h2>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
-        <input
-          type="text"
-          name="title"
-          placeholder="Enter title"
-          value={meta.title}
-          onChange={formFieldChange}
-          className="p-2 border rounded"
-          required
-        />
-        <input
-          type="text"
-          name="description"
-          placeholder="Enter description"
-          value={meta.description}
-          onChange={formFieldChange}
-          className="p-2 border rounded"
-          required
-        />
-        <input
-          onChange={handleFileChange}
-          type="file"
-          ref={fileInputRef}
-          className="file:mr-4 file:rounded-full file:border-0 file:bg-violet-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-violet-700 hover:file:bg-violet-100 dark:file:bg-violet-600 dark:file:text-violet-100 dark:hover:file:bg-violet-500"
-          required
-        />
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="title" className="block text-sm font-medium text-blue-300 mb-1">
+              Title
+            </label>
+            <input
+              id="title"
+              type="text"
+              name="title"
+              placeholder="Enter video title"
+              value={meta.title}
+              onChange={formFieldChange}
+              className="w-full p-3 bg-gray-900 border border-blue-500 rounded-md text-white focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+              required
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="description" className="block text-sm font-medium text-blue-300 mb-1">
+              Description
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              placeholder="Enter video description"
+              value={meta.description}
+              onChange={formFieldChange}
+              className="w-full p-3 bg-gray-900 border border-blue-500 rounded-md text-white focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+              rows="3"
+              required
+            />
+          </div>
+          
+          <div className="mt-4">
+            <label htmlFor="fileUpload" className="block text-sm font-medium text-blue-300 mb-1">
+              Select Video File
+            </label>
+            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-blue-500 rounded-md bg-gray-900">
+              <div className="space-y-1 text-center">
+                <svg className="mx-auto h-12 w-12 text-blue-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <div className="flex text-sm text-gray-400">
+                  <label htmlFor="file-upload" className="relative cursor-pointer bg-gray-800 rounded-md font-medium text-blue-400 hover:text-blue-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 px-4 py-2">
+                    <span>Select a file</span>
+                    <input 
+                      id="file-upload" 
+                      name="file-upload" 
+                      type="file" 
+                      className="sr-only" 
+                      onChange={handleFileChange}
+                      ref={fileInputRef}
+                      required
+                    />
+                  </label>
+                  <p className="pl-1 pt-2">{selectedFile ? selectedFile.name : "No file chosen"}</p>
+                </div>
+                <p className="text-xs text-gray-400">
+                  MP4, MOV, AVI up to 2GB
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {uploading && (
+          <div className="w-full bg-gray-700 rounded-full h-2.5 mt-4">
+            <div 
+              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out"
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+        )}
+        
+        {message && (
+          <div 
+            className={`mt-2 text-center p-2 rounded ${
+              message.includes('success') ? 'bg-blue-900 text-blue-200' : 'bg-gray-800 text-blue-300'
+            }`}
+            onClick={() => setMessage('')}
+          >
+            {message}
+          </div>
+        )}
+        
         <button
           disabled={uploading}
           type="submit"
-          className="px-6 py-2 bg-violet-600 text-white font-semibold rounded hover:bg-violet-500 dark:bg-violet-500 dark:hover:bg-violet-600"
+          className="mt-4 px-6 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300 ease-in-out"
         >
-          Upload
+          {uploading ? 'Uploading...' : 'Upload Video'}
         </button>
-        <div
-          hidden={!uploading}
-          style={{
-            width: "100%",
-            backgroundColor: "#e0e0e0",
-            borderRadius: "8px",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              width: `${progress}%`,
-              backgroundColor: "#3b82f6",
-              height: "20px",
-            }}
-          />
-        </div>
-        <div
-          className="text-purple-700 dark:text-purple-300"
-          onClick={() => setMessage('')}
-        >
-          {message}
-        </div>
       </form>
     </div>
   );
