@@ -6,6 +6,9 @@ function Home() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
+  
+  // Use environment variable for API URL
+  const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     // Fetch videos when component mounts
@@ -15,7 +18,7 @@ function Home() {
   const fetchVideos = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8080/api/v1/videos');
+      const response = await fetch(`${API_URL}/api/v1/videos`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch videos');
@@ -47,7 +50,7 @@ function Home() {
   );
 
   return (
-    <div className="min-h-screen  text-white">
+    <div className="min-h-screen text-white">
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex flex-col items-center space-y-6 mb-10">
           <h1 className="text-4xl font-bold text-blue-400">Video Streaming</h1>
@@ -103,7 +106,7 @@ function Home() {
                 <div className="relative aspect-video bg-gray-800 flex items-center justify-center">
                   {/* Thumbnail Image */}
                   <img 
-                    src={`http://localhost:8080/api/v1/videos/${video.videoId}/thumbnail`}
+                    src={`${API_URL}/api/v1/videos/${video.videoId}/thumbnail`}
                     alt={video.title || 'Video thumbnail'}
                     className="w-full h-full object-cover"
                     onError={(e) => {

@@ -17,12 +17,15 @@ function VideoPlayerPage() {
   const [currentResolution, setCurrentResolution] = useState("auto");
   const [availableResolutions, setAvailableResolutions] = useState([]);
   const navigate = useNavigate();
+  
+  // Use environment variable for API URL
+  const API_URL = process.env.REACT_APP_API_URL;
 
   // Fetch video data
   useEffect(() => {
     const fetchVideoData = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/v1/videos");
+        const response = await fetch(`${API_URL}/api/v1/videos`);
         if (!response.ok) throw new Error('Failed to fetch videos');
         
         const allVideos = await response.json();
@@ -38,7 +41,7 @@ function VideoPlayerPage() {
     };
 
     if (id) fetchVideoData();
-  }, [id]);
+  }, [id, API_URL]);
 
   // Initialize video player and HLS
   useEffect(() => {
@@ -70,7 +73,7 @@ function VideoPlayerPage() {
           playerEl.classList.add('vjs-custom-theme');
         }
 
-        const videoSrc = `http://localhost:8080/api/v1/videos/${id}/master.m3u8`;
+        const videoSrc = `${API_URL}/api/v1/videos/${id}/master.m3u8`;
 
         if (Hls.isSupported()) {
           hlsRef.current = new Hls();
@@ -98,7 +101,7 @@ function VideoPlayerPage() {
         if (hlsRef.current) hlsRef.current.destroy();
       };
     }
-  }, [loading, error, videoData]);
+  }, [loading, error, videoData, id, API_URL]);
 
   // Update HLS quality level
   useEffect(() => {
@@ -124,7 +127,7 @@ function VideoPlayerPage() {
     setDeleting(true);
     
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/videos/${id}`, {
+      const response = await fetch(`${API_URL}/api/v1/videos/${id}`, {
         method: 'DELETE',
       });
       
@@ -203,7 +206,7 @@ function VideoPlayerPage() {
           <button 
             onClick={handleDeleteVideo}
             disabled={deleting}
-            className="px-4 py-2 bg-gray-800 hover:bg-grey-500 text-white rounded-md flex items-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-md flex items-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {deleting ? (
               <>
