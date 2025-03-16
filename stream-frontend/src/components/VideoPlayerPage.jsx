@@ -19,7 +19,7 @@ function VideoPlayerPage() {
   const navigate = useNavigate();
   
   // Use environment variable for API URL
-  const API_URL = process.env.REACT_APP_API_URL;
+  const API_URL = "http://localhost:8080";
 
   // Fetch video data
   useEffect(() => {

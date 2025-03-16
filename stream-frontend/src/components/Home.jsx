@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom';
-
+import process from "process"
 function Home() {
   const [videos, setVideos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -8,7 +8,7 @@ function Home() {
   const [searchQuery, setSearchQuery] = useState("")
   
   // Use environment variable for API URL
-  const API_URL = process.env.REACT_APP_API_URL;
+  const API_URL = "http://localhost:8080";
 
   useEffect(() => {
     // Fetch videos when component mounts
