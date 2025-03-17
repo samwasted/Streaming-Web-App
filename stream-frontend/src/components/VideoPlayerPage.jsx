@@ -21,6 +21,29 @@ function VideoPlayerPage() {
   // Use environment variable for API URL
   const API_URL = "http://localhost:8080";
 
+  // Helper function to get relative time string
+  const getRelativeTimeString = (dateString) => {
+    const now = new Date();
+    const uploadDate = new Date(dateString);
+    const diffMs = now - uploadDate;
+    
+    // Convert to minutes, hours, days, and months
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffMonths = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30));
+    
+    if (diffMinutes < 60) {
+      return `Uploaded ${diffMinutes} ${diffMinutes === 1 ? 'minute' : 'minutes'} ago`;
+    } else if (diffHours < 24) {
+      return `Uploaded ${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`;
+    } else if (diffDays < 30) {
+      return `Uploaded ${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
+    } else {
+      return `Uploaded ${diffMonths} ${diffMonths === 1 ? 'month' : 'months'} ago`;
+    }
+  };
+
   // Fetch video data
   useEffect(() => {
     const fetchVideoData = async () => {
@@ -283,9 +306,14 @@ function VideoPlayerPage() {
           </div>
           
           <div className={`transition-all duration-300 overflow-hidden ${expanded ? 'max-h-96 p-4' : 'max-h-0'}`}>
-            <p className="text-gray-300">
+            <p className="text-gray-300 mb-2">
               {videoData?.description || "No description available for this video."}
             </p>
+            {videoData?.uploadTime && (
+              <p className="text-gray-500 text-sm mt-4">
+                {getRelativeTimeString(videoData.uploadTime)}
+              </p>
+            )}
           </div>
         </div>
         
@@ -294,9 +322,9 @@ function VideoPlayerPage() {
           <p className="text-sm text-gray-400 mb-1">
             <span className="font-medium text-blue-400">ID:</span> {videoData?.videoId || id}
           </p>
-          {videoData?.uploadDate && (
+          {videoData?.uploadTime && (
             <p className="text-sm text-gray-400">
-              <span className="font-medium text-blue-400">Uploaded:</span> {new Date(videoData.uploadDate).toLocaleDateString()}
+              <span className="font-medium text-blue-400">Uploaded:</span> {new Date(videoData.uploadTime).toLocaleString()}
             </p>
           )}
         </div>

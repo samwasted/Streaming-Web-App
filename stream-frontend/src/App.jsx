@@ -5,6 +5,8 @@ import { Route, Routes } from 'react-router-dom'
 import VideoUpload from './components/VideoUpload'
 import Navbar from './components/Navbar'
 import VideoPlayerPage from './components/VideoPlayerPage'
+import PlaylistManager from './components/PlaylistManager'
+
 function App() {
   return (
     <>
@@ -13,6 +15,7 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/video/:id" element={<VideoPlayerPage />} />
       <Route path="/upload" element={<VideoUpload />} />
+      <Route path="/playlists" element={<PlaylistManager />} />
     </Routes>
     </>
   )

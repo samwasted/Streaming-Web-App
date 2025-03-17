@@ -18,6 +18,10 @@ const Navbar = () => {
           >
             Upload
           </Link>
+          <Link 
+            to="./playlists"
+            className='text-white hover:bg-gray-700 px-3 py-2 rounded-md font-medium'
+            >Playlists</Link>
         </div>
       </div>
     </nav>

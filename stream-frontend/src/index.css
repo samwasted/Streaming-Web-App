@@ -1,1 +1,24 @@
 @import "tailwindcss";
+
+:root {
+    --hovercol: #ffffff;
+    --delay: 0.7s;
+    --navcol: rgb(155, 88, 68);
+    --tw-gradient-from: #14040d;
+    --tw-gradient-to: #08023a;
+}
+.loginpage {
+
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+
+
+    /* height: min(100vh, 700px); */
+
+
+    background-image: url("data:image/svg+xml,%3Csvg width='100%' height='100%'  viewBox='0 0 1876 883' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath opacity='0.5' d='M0.5 232.5L499.813 353.297C730.971 409.22 1187.24 249.207 950 232.5V232.5V232.5C791.249 221.32 934.28 113.377 1090.08 145.825C1322.9 194.314 1494.5 268.472 1607.87 335.754C1712.55 397.884 1796.21 494.695 1828.38 612.103C1838.7 649.802 1842.33 685.695 1832.5 712C1800 799 1482 940.5 1141.5 853.5C801 766.5 1643.5 615 1392.5 458.5C1141.5 302 1646.5 -43.5 1770.5 23.5C1894.5 90.5 1894.5 209.5 1832.5 264.5C1770.5 319.5 433 -128 428 41C423 210 681.5 602.5 1141.5 458.5C1601.5 314.5 1348 853.5 1087 853.5C826 853.5 785.5 794 845.5 712C905.5 630 918 471 714 458.5C510 446 242 307.5 316.5 165.5C391 23.5 -99 68 80 344C259 620 703.5 401.5 594.5 575.5C485.5 749.5 659.5 866.5 217 836.5C-225.5 806.5 182.5 595 217 600C251.5 605 301 836 694 774' stroke='%23D5AC0A' stroke-width='4'/%3E%3C/svg%3E%0A"), linear-gradient(to bottom right, var(--tw-gradient-stops));
+
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+    border-bottom: 10px solid var(--navcol);
+
+}
