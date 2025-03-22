@@ -8,6 +8,7 @@ function VideoUpload() {
   const [progress, setProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState('');
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   
   // Create a ref for the file input
   const fileInputRef = useRef(null);
@@ -18,7 +19,50 @@ function VideoUpload() {
   const token = user ? user.accessToken : null;
   
   function handleFileChange(event) {
-    setSelectedFile(event.target.files[0]);
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      checkVideoDimensions(file);
+    }
+  }
+
+  function checkVideoDimensions(file) {
+    // Create a temporary URL for the video file
+    const videoURL = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    
+    video.onloadedmetadata = function() {
+      // Revoke the URL to free up memory
+      URL.revokeObjectURL(videoURL);
+      
+      const width = video.videoWidth;
+      const height = video.videoHeight;
+      
+      setDimensions({ width, height });
+      
+      // Check if it's a vertical video (height > width)
+      if (height > width) {
+        setMessage('Vertical videos are not supported. Please upload a video with landscape orientation.');
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = null;
+        }
+      } else {
+        setMessage('');
+      }
+    };
+    
+    // Handle errors in loading the video
+    video.onerror = function() {
+      URL.revokeObjectURL(videoURL);
+      setMessage('Could not check video dimensions. Please ensure this is a valid video file.');
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = null;
+      }
+    };
+    
+    video.src = videoURL;
   }
 
   function formFieldChange(event) {
@@ -35,6 +79,13 @@ function VideoUpload() {
       setMessage('Please select a file');
       return;
     }
+    
+    // Double-check that it's not a vertical video before uploading
+    if (dimensions.height > dimensions.width) {
+      setMessage('Vertical videos are not supported. Please upload a video with landscape orientation.');
+      return;
+    }
+    
     console.log(meta);
     uploadFile();
   }
@@ -67,6 +118,7 @@ function VideoUpload() {
       setProgress(0);
       setMeta({ title: "", description: "" });
       setSelectedFile(null);
+      setDimensions({ width: 0, height: 0 });
       // Clear the file input's value using the ref
       if (fileInputRef.current) {
         fileInputRef.current.value = null;
@@ -116,7 +168,7 @@ function VideoUpload() {
           
           <div className="mt-4">
             <label htmlFor="fileUpload" className="block text-sm font-medium text-blue-300 mb-1">
-              Select Video File
+              Select Video File (Landscape orientation only)
             </label>
             <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-blue-500 rounded-md bg-gray-900">
               <div className="space-y-1 text-center">
@@ -129,7 +181,8 @@ function VideoUpload() {
                     <input 
                       id="file-upload" 
                       name="file-upload" 
-                      type="file" 
+                      type="file"
+                      accept="video/*"
                       className="sr-only" 
                       onChange={handleFileChange}
                       ref={fileInputRef}
@@ -146,6 +199,17 @@ function VideoUpload() {
           </div>
         </div>
         
+        {selectedFile && dimensions.width > 0 && (
+          <div className="mt-2 text-center text-sm text-blue-300">
+            Video dimensions: {dimensions.width} x {dimensions.height} px
+            {dimensions.width > dimensions.height ? (
+              <span className="ml-2 text-green-400">(Landscape orientation ✓)</span>
+            ) : (
+              <span className="ml-2 text-red-400">(Vertical orientation ✗)</span>
+            )}
+          </div>
+        )}
+        
         {uploading && (
           <div className="w-full bg-gray-700 rounded-full h-2.5 mt-4">
             <div 
@@ -158,7 +222,7 @@ function VideoUpload() {
         {message && (
           <div 
             className={`mt-2 text-center p-2 rounded ${
-              message.includes('success') ? 'bg-blue-900 text-blue-200' : 'bg-gray-800 text-blue-300'
+              message.includes('success') ? 'bg-blue-900 text-blue-200' : message.includes('Vertical') ? 'bg-red-900 text-red-200' : 'bg-gray-800 text-blue-300'
             }`}
             onClick={() => setMessage('')}
           >
@@ -167,7 +231,7 @@ function VideoUpload() {
         )}
         
         <button
-          disabled={uploading}
+          disabled={uploading || (selectedFile && dimensions.height > dimensions.width)}
           type="submit"
           className="mt-4 px-6 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300 ease-in-out"
         >
