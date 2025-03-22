@@ -6,7 +6,7 @@ function Home() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
-  const [usernameFilter, setUsernameFilter] = useState("")
+  const [titleVisible, setTitleVisible] = useState(false)
   
   // Use environment variable for API URL
   const API_URL = "http://localhost:8080";
@@ -14,6 +14,11 @@ function Home() {
   useEffect(() => {
     // Fetch videos when component mounts
     fetchVideos();
+    
+    // Add title animation when component mounts
+    setTimeout(() => {
+      setTitleVisible(true);
+    }, 100);
   }, []);
 
   const fetchVideos = async () => {
@@ -46,24 +51,31 @@ function Home() {
   };
 
   const filteredVideos = videos.filter(video => 
-    (video.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-     video.videoId?.toLowerCase().includes(searchQuery.toLowerCase())) &&
-    (usernameFilter === "" || 
-     video.username?.toLowerCase().includes(usernameFilter.toLowerCase()))
+    video.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    video.videoId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    video.username?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <div className="min-h-screen text-white">
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex flex-col items-center space-y-6 mb-10">
-          <h1 className="text-4xl font-bold text-blue-400">Video Streaming</h1>
+          <h1 
+            className={`text-4xl font-bold text-blue-400 transform transition-all duration-700 ease-in-out ${
+              titleVisible 
+                ? "opacity-100 translate-y-0" 
+                : "opacity-0 -translate-y-8"
+            }`}
+          >
+            Video Streaming
+          </h1>
           
           <div className="w-full max-w-2xl space-y-4">
-            {/* Title/ID search */}
+            {/* Combined search */}
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search videos by title..."
+                placeholder="Search by title, username, or video ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full p-3 pl-10 bg-gray-900 border border-blue-500 rounded-md text-white focus:ring-2 focus:ring-blue-400 focus:border-transparent"
@@ -76,26 +88,6 @@ function Home() {
                 stroke="currentColor"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            
-            {/* Username filter */}
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Filter by username..."
-                value={usernameFilter}
-                onChange={(e) => setUsernameFilter(e.target.value)}
-                className="w-full p-3 pl-10 bg-gray-900 border border-blue-500 rounded-md text-white focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-              />
-              <svg 
-                className="absolute left-3 top-3.5 h-5 w-5 text-blue-400" 
-                xmlns="http://www.w3.org/2000/svg" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
           </div>
@@ -118,7 +110,7 @@ function Home() {
         ) : filteredVideos.length === 0 ? (
           <div className="text-center p-12 bg-gray-900 rounded-lg border border-blue-500">
             <p className="text-blue-300">
-              {searchQuery || usernameFilter ? "No videos match your search" : "No videos available"}
+              {searchQuery ? "No videos match your search" : "No videos available"}
             </p>
           </div>
         ) : (
