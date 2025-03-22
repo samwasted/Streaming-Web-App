@@ -1,0 +1,8 @@
+# Ignore video files folder
+/videos/
+
+# Ignore HLS output folder
+/videos_hls/
+
+# Ignore thumbnails folder
+/thumbnails/

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import {API_URL} from '../../Constants';
+
 
 function UserPage() {
   const { getUser } = useAuth();
@@ -16,7 +18,7 @@ function UserPage() {
   const [activeTab, setActiveTab] = useState("videos"); // "videos" or "playlists"
   
   // Use environment variable for API URL
-  const API_URL = "http://localhost:8080";
+  // const API_URL = "http://localhost:8080";
 
   useEffect(() => {
     // Fetch videos and playlists when component mounts

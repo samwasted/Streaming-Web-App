@@ -8,11 +8,11 @@
         <version>3.4.3</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.ivanfranchin</groupId>
-    <artifactId>order-api</artifactId>
+    <groupId>com.samwasted</groupId>
+    <artifactId>Streaming-app</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>order-api</name>
-    <description>Demo project for Spring Boot</description>
+    <name>Stream</name>
+    <description>Streaming web app</description>
     <url/>
     
     <properties>

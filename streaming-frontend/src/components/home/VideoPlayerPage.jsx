@@ -4,7 +4,7 @@ import Hls from "hls.js";
 import "video.js/dist/video-js.css";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
+import {API_URL} from '../../Constants';
 function VideoPlayerPage() {
   const { id } = useParams();
   const videoRef = useRef(null);
@@ -30,7 +30,7 @@ function VideoPlayerPage() {
     currentUser.data.rol[0] === "ADMIN";
 
   // Use environment variable for API URL
-  const API_URL = "http://localhost:8080";
+  // const API_URL = "http://localhost:8080";
 
   // Helper function to get relative time string
   const getRelativeTimeString = (dateString) => {

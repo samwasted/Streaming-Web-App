@@ -1,12 +1,18 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 function Navbar() {
   const { getUser, userIsAuthenticated, userLogout } = useAuth()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen)
+  }
 
   const logout = () => {
     userLogout()
+    setMobileMenuOpen(false)
   }
 
   const isAuthenticated = userIsAuthenticated()
@@ -83,60 +89,160 @@ function Navbar() {
 
   return (
     <nav className="bg-orange-950 text-white">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        {/* Left Side */}
-        <div className="flex items-center space-x-6">
-          <span className="font-bold text-xl transition-transform duration-300 hover:scale-110 cursor-pointer">SV</span>
-          <Link to="/" className="relative py-1 overflow-hidden group">
-            <span className="relative z-10 transition-colors duration-300 group-hover:text-orange-300 text-blue-200">Home</span>
-            <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-orange-300 transition-all duration-300 group-hover:w-full"></span>
-          </Link>
-          <Link to="/playlist" className="relative py-1 overflow-hidden group">
-            <span className="relative z-10 transition-colors duration-300 group-hover:text-orange-300 text-blue-200">Playlists</span>
-            <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-orange-300 transition-all duration-300 group-hover:w-full"></span>
-          </Link>
-          {isAdmin && (
-            <Link to="/adminpage" className="relative py-1 overflow-hidden group">
-              <span className="relative z-10 transition-colors duration-300 group-hover:text-orange-300">AdminPage</span>
+      <div className="container mx-auto px-4 py-4">
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center justify-between">
+          {/* Left Side */}
+          <div className="flex items-center space-x-6">
+            <span className="font-bold text-xl transition-transform duration-300 hover:scale-110 cursor-pointer">SV</span>
+            <Link to="/" className="relative py-1 overflow-hidden group">
+              <span className="relative z-10 transition-colors duration-300 group-hover:text-orange-300 text-blue-200">Home</span>
               <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-orange-300 transition-all duration-300 group-hover:w-full"></span>
             </Link>
-          )}
-          {isUser && (
-            <Link to="/userpage" className="relative py-1 overflow-hidden group">
-              <span className="relative z-10 transition-colors duration-300 group-hover:text-orange-300">Dashboard</span>
+            <Link to="/playlist" className="relative py-1 overflow-hidden group">
+              <span className="relative z-10 transition-colors duration-300 group-hover:text-orange-300 text-blue-200">Playlists</span>
               <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-orange-300 transition-all duration-300 group-hover:w-full"></span>
             </Link>
-          )}
+            {isAdmin && (
+              <Link to="/adminpage" className="relative py-1 overflow-hidden group">
+                <span className="relative z-10 transition-colors duration-300 group-hover:text-orange-300">AdminPage</span>
+                <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-orange-300 transition-all duration-300 group-hover:w-full"></span>
+              </Link>
+            )}
+            {isUser && (
+              <Link to="/userpage" className="relative py-1 overflow-hidden group">
+                <span className="relative z-10 transition-colors duration-300 group-hover:text-orange-300">Dashboard</span>
+                <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-orange-300 transition-all duration-300 group-hover:w-full"></span>
+              </Link>
+            )}
+          </div>
+          {/* Right Side */}
+          <div className="flex items-center space-x-6">
+            {!isAuthenticated && (
+              <>
+                <Link to="/login" className="relative py-1 overflow-hidden group">
+                  <span className="relative z-10 transition-colors duration-300 group-hover:text-orange-300">Login</span>
+                  <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-orange-300 transition-all duration-300 group-hover:w-full"></span>
+                </Link>
+                <Link to="/signup" className="relative py-1 overflow-hidden group">
+                  <span className="relative z-10 transition-colors duration-300 group-hover:text-orange-300">Sign Up</span>
+                  <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-orange-300 transition-all duration-300 group-hover:w-full"></span>
+                </Link>
+              </>
+            )}
+            {isAuthenticated && (
+              <>
+                <div className="flex items-center space-x-2 font-medium transition-transform duration-300 hover:scale-105">
+                  {greeting.icon}
+                  <span>{`${greeting.text}, ${userName}`}</span>
+                </div>
+                <button 
+                  onClick={logout} 
+                  className="relative py-1 overflow-hidden group"
+                >
+                  <span className="relative z-10 transition-colors duration-300 group-hover:text-orange-300">Logout</span>
+                  <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-orange-300 transition-all duration-300 group-hover:w-full"></span>
+                </button>
+              </>
+            )}
+          </div>
         </div>
-        {/* Right Side */}
-        <div className="flex items-center space-x-6">
-          {!isAuthenticated && (
-            <>
-              <Link to="/login" className="relative py-1 overflow-hidden group">
-                <span className="relative z-10 transition-colors duration-300 group-hover:text-orange-300">Login</span>
-                <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-orange-300 transition-all duration-300 group-hover:w-full"></span>
-              </Link>
-              <Link to="/signup" className="relative py-1 overflow-hidden group">
-                <span className="relative z-10 transition-colors duration-300 group-hover:text-orange-300">Sign Up</span>
-                <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-orange-300 transition-all duration-300 group-hover:w-full"></span>
-              </Link>
-            </>
-          )}
-          {isAuthenticated && (
-            <>
-              <div className="flex items-center space-x-2 font-medium transition-transform duration-300 hover:scale-105">
-                {greeting.icon}
-                <span>{`${greeting.text}, ${userName}`}</span>
-              </div>
-              <button 
-                onClick={logout} 
-                className="relative py-1 overflow-hidden group"
+
+        {/* Mobile Navigation */}
+        <div className="flex md:hidden items-center justify-between">
+          <span className="font-bold text-xl transition-transform duration-300 hover:scale-110 cursor-pointer">SV</span>
+          
+          {/* Mobile Menu Button */}
+          <button 
+            onClick={toggleMobileMenu}
+            className="focus:outline-none transition-transform duration-300 hover:scale-110"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          >
+            {mobileMenuOpen ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-all duration-300">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-all duration-300">
+                <line x1="4" x2="20" y1="12" y2="12"></line>
+                <line x1="4" x2="20" y1="6" y2="6"></line>
+                <line x1="4" x2="20" y1="18" y2="18"></line>
+              </svg>
+            )}
+          </button>
+        </div>
+
+        {/* Mobile Menu - with smooth height transition */}
+        <div 
+          className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+            mobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
+          <div className="py-3 space-y-3 flex flex-col border-t border-orange-800 mt-4">
+            <Link 
+              to="/" 
+              className="py-2 hover:text-orange-300 transition-colors duration-300"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Home
+            </Link>
+            <Link 
+              to="/playlist" 
+              className="py-2 hover:text-orange-300 transition-colors duration-300"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Playlists
+            </Link>
+            {isAdmin && (
+              <Link 
+                to="/adminpage" 
+                className="py-2 hover:text-orange-300 transition-colors duration-300"
+                onClick={() => setMobileMenuOpen(false)}
               >
-                <span className="relative z-10 transition-colors duration-300 group-hover:text-orange-300">Logout</span>
-                <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-orange-300 transition-all duration-300 group-hover:w-full"></span>
-              </button>
-            </>
-          )}
+                AdminPage
+              </Link>
+            )}
+            {isUser && (
+              <Link 
+                to="/userpage" 
+                className="py-2 hover:text-orange-300 transition-colors duration-300"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+            )}
+            
+            {/* Authentication Links */}
+            {!isAuthenticated ? (
+              <>
+                <Link 
+                  to="/login" 
+                  className="py-2 hover:text-orange-300 transition-colors duration-300"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Login
+                </Link>
+                <Link 
+                  to="/signup" 
+                  className="py-2 hover:text-orange-300 transition-colors duration-300"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign Up
+                </Link>
+              </>
+            ) : (
+              <>
+                {/* Removed username display on mobile */}
+                <button 
+                  onClick={logout}
+                  className="py-2 text-left hover:text-orange-300 transition-colors duration-300"
+                >
+                  Logout
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </nav>

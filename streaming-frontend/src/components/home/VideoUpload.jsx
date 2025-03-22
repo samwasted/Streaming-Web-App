@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import {API_URL} from '../../Constants';
+
 
 function VideoUpload() {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -98,7 +100,7 @@ function VideoUpload() {
       formData.append('description', meta.description);
       formData.append('file', selectedFile);
 
-      await axios.post('http://localhost:8080/api/v1/videos', formData, {
+      await axios.post(`${API_URL}/api/v1/videos`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           // Add the JWT token if available

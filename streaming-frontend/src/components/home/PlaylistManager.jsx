@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import {API_URL} from '../../Constants';
 
-const API_URL = 'http://localhost:8080'
+
 // Playlist Card Component
 const PlaylistCard = ({ playlist, onView, onEdit, onDelete, isAuthenticated }) => {
   const thumbnail = playlist.videos && playlist.videos.length > 0

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom';
-
+import {API_URL} from '../../Constants';
 function Home() {
   const [videos, setVideos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -8,9 +8,6 @@ function Home() {
   const [searchQuery, setSearchQuery] = useState("")
   const [titleVisible, setTitleVisible] = useState(false)
   
-  // Use environment variable for API URL
-  const API_URL = "http://localhost:8080";
-
   useEffect(() => {
     // Fetch videos when component mounts
     fetchVideos();
@@ -50,7 +47,13 @@ function Home() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const filteredVideos = videos.filter(video => 
+  // First filter out videos that have both title AND username missing/null
+  const validVideos = videos.filter(video => 
+    (video.title || video.username)
+  );
+  
+  // Then apply the search query filter on the valid videos
+  const filteredVideos = validVideos.filter(video => 
     video.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
     video.videoId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     video.username?.toLowerCase().includes(searchQuery.toLowerCase())
