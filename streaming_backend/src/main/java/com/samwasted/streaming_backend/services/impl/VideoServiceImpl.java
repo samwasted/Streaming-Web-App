@@ -107,35 +107,35 @@ public class VideoServiceImpl implements VideoService {
     public String processVideo(String videoId) {
         Video video = this.get(videoId);
         String filePath = video.getFilePath();
-    
+
         // Path where to store data:
         Path videoPath = Paths.get(filePath);
-    
+
         // Main output directory
         Path outputPath = Paths.get(HSL_DIR, videoId);
-    
+
         try {
             // Create main directory
             Files.createDirectories(outputPath);
-    
+
             // Create directories for each resolution variant
+            // FFmpeg will use these as output directories (0, 1, 2)
             Files.createDirectories(Paths.get(HSL_DIR, videoId, "0"));
             Files.createDirectories(Paths.get(HSL_DIR, videoId, "1"));
             Files.createDirectories(Paths.get(HSL_DIR, videoId, "2"));
-    
-            // Build ffmpeg command for multiple resolutions with preserved aspect ratio
+
+            // Build ffmpeg command for multiple resolutions
             StringBuilder ffmpegCmd = new StringBuilder();
             ffmpegCmd.append("ffmpeg -i \"")
                     .append(videoPath.toString())
                     .append("\" -c:v libx264 -c:a aac")
                     .append(" ")
-                    // Use -1 for height to maintain aspect ratio based on width
-                    .append("-map 0:v -map 0:a -vf:v:0 \"scale=640:-1\" -b:v:0 800k ")
-                    .append("-map 0:v -map 0:a -vf:v:1 \"scale=1280:-1\" -b:v:1 2800k ")
-                    .append("-map 0:v -map 0:a -vf:v:2 \"scale=1920:-1\" -b:v:2 5000k ")
+                    .append("-map 0:v -map 0:a -s:v:0 640x360 -b:v:0 800k ")
+                    .append("-map 0:v -map 0:a -s:v:1 1280x720 -b:v:1 2800k ")
+                    .append("-map 0:v -map 0:a -s:v:2 1920x1080 -b:v:2 5000k ")
                     .append("-var_stream_map \"v:0,a:0 v:1,a:1 v:2,a:2\" ")
                     .append("-master_pl_name master.m3u8 ")
-                    .append("-f hls -hls_time 5 -hls_list_size 0 ")
+                    .append("-f hls -hls_time 5 -hls_list_size 0 ") //changed to 5 sec from 10 sec segments
                     .append("-hls_segment_filename \"")
                     .append(HSL_DIR)
                     .append(videoId)
@@ -144,10 +144,10 @@ public class VideoServiceImpl implements VideoService {
                     .append(HSL_DIR)
                     .append(videoId)
                     .append("/%v/playlist.m3u8\"");
-    
+
             String ffmpegCommand = ffmpegCmd.toString();
             System.out.println(ffmpegCommand);
-    
+
             // Execute ffmpeg command
             ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", ffmpegCommand);
             processBuilder.inheritIO();
@@ -156,9 +156,9 @@ public class VideoServiceImpl implements VideoService {
             if (exit != 0) {
                 throw new RuntimeException("Video processing failed!!");
             }
-    
+
             return videoId;
-    
+
         } catch (IOException ex) {
             throw new RuntimeException("Video processing failed!!", ex);
         } catch (InterruptedException e) {
