@@ -17,7 +17,7 @@ function Navbar() {
 
   const isAuthenticated = userIsAuthenticated()
   const user = getUser()
-  const userName = user ? user.data.name : ''
+  const userName = user ? user.data.name : 'Guest'
 
   const isAdmin = user && user.data.rol[0] === 'ADMIN'
   const isUser = user && user.data.rol[0] === 'USER'
@@ -94,7 +94,9 @@ function Navbar() {
         <div className="hidden md:flex items-center justify-between">
           {/* Left Side */}
           <div className="flex items-center space-x-6">
-            <span className="font-bold text-xl transition-transform duration-300 hover:scale-110 cursor-pointer">SV</span>
+            <span className="font-bold text-xl group relative cursor-pointer">
+              <span className="transition-all duration-300 group-hover:text-yellow-300 group-hover:scale-110 inline-block">SV</span>
+            </span>
             <Link to="/" className="relative py-1 overflow-hidden group">
               <span className="relative z-10 transition-colors duration-300 group-hover:text-orange-300 text-blue-200">Home</span>
               <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-orange-300 transition-all duration-300 group-hover:w-full"></span>
@@ -118,6 +120,12 @@ function Navbar() {
           </div>
           {/* Right Side */}
           <div className="flex items-center space-x-6">
+            {/* Always show greeting for both authenticated users and guests */}
+            <div className="flex items-center space-x-2 font-medium transition-transform duration-300 hover:scale-105">
+              {greeting.icon}
+              <span>{`${greeting.text}, ${userName}`}</span>
+            </div>
+            
             {!isAuthenticated && (
               <>
                 <Link to="/login" className="relative py-1 overflow-hidden group">
@@ -131,26 +139,23 @@ function Navbar() {
               </>
             )}
             {isAuthenticated && (
-              <>
-                <div className="flex items-center space-x-2 font-medium transition-transform duration-300 hover:scale-105">
-                  {greeting.icon}
-                  <span>{`${greeting.text}, ${userName}`}</span>
-                </div>
-                <button 
-                  onClick={logout} 
-                  className="relative py-1 overflow-hidden group"
-                >
-                  <span className="relative z-10 transition-colors duration-300 group-hover:text-orange-300">Logout</span>
-                  <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-orange-300 transition-all duration-300 group-hover:w-full"></span>
-                </button>
-              </>
+              <button 
+                onClick={logout} 
+                className="relative py-1 overflow-hidden group"
+              >
+                <span className="relative z-10 transition-colors duration-300 group-hover:text-orange-300">Logout</span>
+                <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-orange-300 transition-all duration-300 group-hover:w-full"></span>
+              </button>
             )}
           </div>
         </div>
 
         {/* Mobile Navigation */}
         <div className="flex md:hidden items-center justify-between">
-          <span className="font-bold text-xl transition-transform duration-300 hover:scale-110 cursor-pointer">SV</span>
+          <span className="font-bold text-xl group relative cursor-pointer">
+            <span className="transition-all duration-300 group-hover:text-yellow-300 group-hover:scale-110 inline-block">SV</span>
+            <span className="absolute inset-0 border-t-0 border-l-0 border-r-0 border-b-0 transition-all duration-300 group-hover:border-t group-hover:border-l group-hover:border-r group-hover:border-b border-yellow-300"></span>
+          </span>
           
           {/* Mobile Menu Button */}
           <button 
@@ -180,6 +185,12 @@ function Navbar() {
           }`}
         >
           <div className="py-3 space-y-3 flex flex-col border-t border-orange-800 mt-4">
+            {/* Show greeting on mobile too */}
+            <div className="flex items-center space-x-2 py-2">
+              {greeting.icon}
+              <span>{`${greeting.text}, ${userName}`}</span>
+            </div>
+            
             <Link 
               to="/" 
               className="py-2 hover:text-orange-300 transition-colors duration-300"
@@ -232,15 +243,12 @@ function Navbar() {
                 </Link>
               </>
             ) : (
-              <>
-                {/* Removed username display on mobile */}
-                <button 
-                  onClick={logout}
-                  className="py-2 text-left hover:text-orange-300 transition-colors duration-300"
-                >
-                  Logout
-                </button>
-              </>
+              <button 
+                onClick={logout}
+                className="py-2 text-left hover:text-orange-300 transition-colors duration-300"
+              >
+                Logout
+              </button>
             )}
           </div>
         </div>

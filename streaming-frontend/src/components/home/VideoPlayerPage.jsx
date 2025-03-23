@@ -5,6 +5,7 @@ import "video.js/dist/video-js.css";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {API_URL} from '../../Constants';
+
 function VideoPlayerPage() {
   const { id } = useParams();
   const videoRef = useRef(null);
@@ -372,7 +373,7 @@ function VideoPlayerPage() {
         </h1>
         
         {/* Video player container with dynamic aspect ratio */}
-        <div className="video-player-container mb-4">
+        <div className="video-player-container mb-1 relative">
           <div 
             className="responsive-video-container w-full relative bg-black rounded-lg overflow-hidden shadow-lg border border-blue-900"
             style={{ paddingTop: `${paddingTopPercentage}%` }}
@@ -386,11 +387,30 @@ function VideoPlayerPage() {
               </div>
             </div>
           </div>
-        </div>
-        
-        {/* Display current aspect ratio */}
-        <div className="mb-2 text-sm text-gray-400">
-          Video aspect ratio: {aspectRatio.toFixed(2)}:1
+          
+          {/* External resolution selector moved closer to video player */}
+          {availableResolutions.length > 0 && (
+            <div className="flex justify-end mt-2 mb-4">
+              <div className="relative inline-block text-left">
+                <select
+                  value={currentResolution}
+                  onChange={handleResolutionChange}
+                  className="appearance-none bg-gray-900 border border-blue-600 text-blue-100 py-1 px-3 pr-8 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {availableResolutions.map(res => (
+                    <option key={res.value} value={res.value}>
+                      {res.label}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-blue-400">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         
         {/* User and upload info */}
@@ -409,30 +429,6 @@ function VideoPlayerPage() {
             )}
           </div>
         </div>
-        
-        {/* External resolution selector */}
-        {availableResolutions.length > 0 && (
-          <div className="mb-6 flex justify-end">
-            <div className="relative inline-block text-left">
-              <select
-                value={currentResolution}
-                onChange={handleResolutionChange}
-                className="appearance-none bg-gray-900 border border-blue-600 text-blue-100 py-1 px-3 pr-8 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {availableResolutions.map(res => (
-                  <option key={res.value} value={res.value}>
-                    {res.label}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-blue-400">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </div>
-            </div>
-          </div>
-        )}
         
         <div className="bg-gray-900 border border-blue-800 rounded-lg overflow-hidden mb-8 shadow-md">
           <div 
