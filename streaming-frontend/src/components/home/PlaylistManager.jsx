@@ -4,12 +4,35 @@ import { useAuth } from '../context/AuthContext';
 import {API_URL} from '../../Constants';
 
 
+
 // Playlist Card Component
 const PlaylistCard = ({ playlist, onView, onEdit, onDelete, isAuthenticated }) => {
+  console.log(playlist)
+  const Auth = useAuth()
+  const currentUser = Auth.getUser();
+  const isAdmin =
+    currentUser &&
+    currentUser.data &&
+    currentUser.data.rol &&
+    currentUser.data.rol[0] === "ADMIN";
+  
+  // Check if current user is the owner of the playlist
+  const isOwner = 
+  currentUser && 
+  playlist && 
+  currentUser.data && 
+  playlist.username && 
+  currentUser.data.preferred_username === playlist.username;
+  
+  // User can delete if they are the owner or an admin
+  const canDelete = isAdmin || isOwner; //is case mein also edit
+
+
   const thumbnail = playlist.videos && playlist.videos.length > 0
     ? `${API_URL}/api/v1/videos/${playlist.videos[0].videoId}/thumbnail`
     : "";
 
+  
   return (
     <div className="bg-gray-900 rounded-lg overflow-hidden border border-blue-800 hover:border-blue-500 transition-all shadow-lg">
       <div className="relative aspect-video">
@@ -38,7 +61,7 @@ const PlaylistCard = ({ playlist, onView, onEdit, onDelete, isAuthenticated }) =
           >
             View
           </button>
-          {isAuthenticated && (
+          {canDelete && isAuthenticated && (
             <div className="flex space-x-2">
               <button 
                 onClick={() => onEdit(playlist)}
@@ -167,6 +190,26 @@ function PlaylistManager() {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'detail'
   const [searchQuery, setSearchQuery] = useState('');
   
+  const Auth = useAuth()
+  const currentUser = Auth.getUser();
+  const isAdmin =
+    currentUser &&
+    currentUser.data &&
+    currentUser.data.rol &&
+    currentUser.data.rol[0] === "ADMIN";
+  
+  // Check if current user is the owner of the playlist
+  const isOwner = 
+  currentUser && 
+  currentPlaylist && 
+  currentUser.data && 
+  currentPlaylist.username && 
+  currentUser.data.preferred_username === currentPlaylist.username;
+  
+  // User can delete if they are the owner or an admin
+  const canDelete = isAdmin || isOwner; //is case mein also edit
+
+
   const { videoId } = useParams();
   const navigate = useNavigate();
   
@@ -293,6 +336,7 @@ function PlaylistManager() {
         const updatedPlaylist = await response.json();
         setPlaylists(playlists.map(p => p.playlistId === updatedPlaylist.playlistId ? updatedPlaylist : p));
         setCurrentPlaylist(updatedPlaylist);
+        console.log(currentPlaylist)
         setIsEditing(false);
         setError(null);
       } catch (err) {
@@ -549,7 +593,7 @@ function PlaylistManager() {
           <div>
             {currentPlaylist && (
               <div className="bg-gray-900 p-6 rounded-lg border border-blue-800">
-                {isEditing ? (
+                { canDelete && isEditing ? (
                   <div>
                     <h2 className="text-2xl font-semibold text-blue-400 mb-4">Edit Playlist</h2>
                     <input
@@ -582,11 +626,11 @@ function PlaylistManager() {
                       </button>
                     </div>
                   </div>
-                ) : (
+                ) :  (
                   <div>
                     <div className="flex justify-between items-center mb-4">
                       <h2 className="text-2xl font-semibold text-blue-400">{currentPlaylist.name}</h2>
-                      {isAuthenticated && (
+                      {canDelete && isAuthenticated && (
                         <div className="flex space-x-2">
                           <button
                             onClick={() => setIsEditing(true)}
@@ -600,7 +644,7 @@ function PlaylistManager() {
                           >
                             Delete
                           </button>
-                        </div>
+                        </div> 
                       )}
                     </div>
                     
@@ -610,7 +654,7 @@ function PlaylistManager() {
                     
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-xl font-medium text-blue-400">Videos ({currentPlaylist.videos.length})</h3>
-                      {isAuthenticated && (
+                      {canDelete && isAuthenticated && (
                        <button
                          onClick={() => requireAuth(() => setShowAddVideoModal(true))}
                          className="bg-blue-600 hover:bg-blue-500 text-white py-1 px-3 rounded text-sm transition-colors"
@@ -643,11 +687,11 @@ function PlaylistManager() {
                                 <div className="flex space-x-2 items-start">
                                   <button
                                     onClick={() => navigate(`/video/${video.videoId}`)}
-                                    className="text-blue-400 hover:text-blue-300 text-sm"
+                                    className="text-blue-400 hover:text-blue-300 text-l"
                                   >
                                     Play
                                   </button>
-                                  {isAuthenticated && (
+                                  {canDelete && isAuthenticated && (
                                     <button
                                       onClick={() => removeVideoFromPlaylist(video.videoId)}
                                       className="text-red-400 hover:text-red-300 text-sm"

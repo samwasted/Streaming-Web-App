@@ -32,11 +32,12 @@ public class SecurityConfig {
         return http
                 .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
                         .requestMatchers(HttpMethod.POST, "/api/v1/videos", "api/v1/videos/*").hasAnyAuthority(ADMIN, USER)
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/videos/*", "/api/v1/videos/*" ).hasAnyAuthority(ADMIN)
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/videos", "/api/v1/videos/*" ).authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/users/me").hasAnyAuthority(ADMIN, USER)
                         .requestMatchers(HttpMethod.GET, "api/v1/playlists").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/playlists", "api/v1/playlists/*", "api/v1/playlists/**").hasAnyAuthority(ADMIN, USER)
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/playlists/*").hasAnyAuthority(ADMIN, USER)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/playlists", "api/v1/playlists/*", "api/v1/playlists/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/playlists", "api/v1/playlists/*", "api/v1/playlists/**").authenticated() //not in use rn
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/playlists/*").authenticated() 
                         .requestMatchers(HttpMethod.GET, "/api/v1/videos/*", "/api/v1/videos/**", "api/v1/videos/*/thumbnail").permitAll()
                         .requestMatchers("/api/users", "/api/users/**").hasAuthority(ADMIN)
                         .requestMatchers("/public/**", "/auth/**").permitAll()

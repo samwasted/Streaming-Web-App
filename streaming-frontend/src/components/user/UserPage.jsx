@@ -7,8 +7,8 @@ import {API_URL} from '../../Constants';
 function UserPage() {
   const { getUser } = useAuth();
   const user = getUser();
-  const userName = user ? user.data.name : 'IACTUALLYDONTCAREABOUTYOURNAME';
-  const username = user ? user.data.preferred_username : 'IDONTCAREYOUWILLNEVERSEEIT';
+  const userName = user ? user.data.name : 'Guest';
+  const username = user ? user.data.preferred_username : 'no username guy';
   
   const [videos, setVideos] = useState([]);
   const [playlists, setPlaylists] = useState([]);
@@ -302,10 +302,10 @@ function UserPage() {
                           e.target.alt = "No videos";
                           e.target.parentNode.classList.add('bg-gray-800', 'flex', 'items-center', 'justify-center');
                           
-                          const placeholderText = document.createElement('div');
-                          placeholderText.className = 'text-blue-400 text-center px-4';
-                          placeholderText.textContent = 'No videos in playlist';
-                          e.target.parentNode.appendChild(placeholderText);
+                          // const placeholderText = document.createElement('div');
+                          // placeholderText.className = 'text-blue-400 text-center px-4';
+                          // placeholderText.textContent = 'No videos in playlist';
+                          // e.target.parentNode.(placeholderText); //fails, needs dom manipulation, or get rekt in loop
                         }}
                       />
                       <div className="absolute bottom-0 right-0 bg-black bg-opacity-70 px-2 py-1 text-xs text-white">

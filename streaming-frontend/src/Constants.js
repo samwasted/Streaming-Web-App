@@ -1,6 +1,6 @@
 const prod = {
   url: {
-    API_BASE_URL: 'https://streamingappt.vercel.com',
+    API_BASE_URL: 'http://172.20.86.238:8080',
   }
 }
 

@@ -7,14 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("api/v1/playlists")
-
 public class PlaylistController {
 
     private final PlaylistService playlistService;
@@ -50,25 +51,25 @@ public class PlaylistController {
 
     // Create a new playlist
     @PostMapping
-public ResponseEntity<?> createPlaylist(@RequestBody Playlist playlist) {
-    // Extract username from authentication context
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    String username = authentication.getName();
-    playlist.setUsername(username);
-    
-    Playlist createdPlaylist = playlistService.createPlaylist(playlist);
+    public ResponseEntity<?> createPlaylist(@RequestBody Playlist playlist) {
+        // Extract username from authentication context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        playlist.setUsername(username);
+        
+        Playlist createdPlaylist = playlistService.createPlaylist(playlist);
 
-    if (createdPlaylist != null) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdPlaylist);
-    } else {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                CustomMessage.builder()
-                        .message("Failed to create playlist")
-                        .success(false)
-                        .build()
-        );
+        if (createdPlaylist != null) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdPlaylist);
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    CustomMessage.builder()
+                            .message("Failed to create playlist")
+                            .success(false)
+                            .build()
+            );
+        }
     }
-}
 
     // Update playlist details
     @PutMapping("/{playlistId}")
@@ -76,17 +77,44 @@ public ResponseEntity<?> createPlaylist(@RequestBody Playlist playlist) {
             @PathVariable String playlistId,
             @RequestBody Playlist updatedPlaylist
     ) {
-        // Ensure the path ID matches the body ID
+        // First, check ownership or admin role
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        boolean isAdmin = authentication.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN"));
+        
+        // Get the existing playlist to check ownership
+        Playlist existingPlaylist = playlistService.getPlaylist(playlistId);
+        if (existingPlaylist == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    CustomMessage.builder()
+                            .message("Playlist not found")
+                            .success(false)
+                            .build()
+            );
+        }
+        
+        // Check if user is authorized to modify this playlist
+        if (!currentUsername.equals(existingPlaylist.getUsername()) && !isAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                    CustomMessage.builder()
+                            .message("You don't have permission to update this playlist")
+                            .success(false)
+                            .build()
+            );
+        }
+        
+        // Ensure the path ID matches the body ID and preserve the original owner
         updatedPlaylist.setPlaylistId(playlistId);
+        updatedPlaylist.setUsername(existingPlaylist.getUsername()); // Prevent ownership change
         
         Playlist result = playlistService.updatePlaylist(updatedPlaylist);
         
         if (result != null) {
             return ResponseEntity.ok(result);
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     CustomMessage.builder()
-                            .message("Playlist not found")
+                            .message("Failed to update playlist")
                             .success(false)
                             .build()
             );
@@ -96,6 +124,32 @@ public ResponseEntity<?> createPlaylist(@RequestBody Playlist playlist) {
     // Delete a playlist
     @DeleteMapping("/{playlistId}")
     public ResponseEntity<?> deletePlaylist(@PathVariable String playlistId) {
+        // First, check ownership or admin role
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        boolean isAdmin = authentication.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN"));
+        
+        // Get the existing playlist to check ownership
+        Playlist existingPlaylist = playlistService.getPlaylist(playlistId);
+        if (existingPlaylist == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    CustomMessage.builder()
+                            .message("Playlist not found")
+                            .success(false)
+                            .build()
+            );
+        }
+        
+        // Check if user is authorized to delete this playlist
+        if (!currentUsername.equals(existingPlaylist.getUsername()) && !isAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                    CustomMessage.builder()
+                            .message("You don't have permission to delete this playlist")
+                            .success(false)
+                            .build()
+            );
+        }
+        
         boolean deleted = playlistService.deletePlaylist(playlistId);
         
         if (deleted) {
@@ -106,9 +160,9 @@ public ResponseEntity<?> createPlaylist(@RequestBody Playlist playlist) {
                             .build()
             );
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     CustomMessage.builder()
-                            .message("Playlist not found")
+                            .message("Failed to delete playlist")
                             .success(false)
                             .build()
             );
@@ -121,6 +175,32 @@ public ResponseEntity<?> createPlaylist(@RequestBody Playlist playlist) {
             @PathVariable String playlistId,
             @RequestBody Map<String, String> payload
     ) {
+        // First, check ownership or admin role
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        boolean isAdmin = authentication.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN"));
+        
+        // Get the existing playlist to check ownership
+        Playlist existingPlaylist = playlistService.getPlaylist(playlistId);
+        if (existingPlaylist == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    CustomMessage.builder()
+                            .message("Playlist not found")
+                            .success(false)
+                            .build()
+            );
+        }
+        
+        // Check if user is authorized to modify this playlist
+        if (!currentUsername.equals(existingPlaylist.getUsername()) && !isAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                    CustomMessage.builder()
+                            .message("You don't have permission to modify this playlist")
+                            .success(false)
+                            .build()
+            );
+        }
+        
         String videoId = payload.get("videoId");
         
         if (videoId == null) {
@@ -158,6 +238,32 @@ public ResponseEntity<?> createPlaylist(@RequestBody Playlist playlist) {
             @PathVariable String playlistId,
             @PathVariable String videoId
     ) {
+        // First, check ownership or admin role
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        boolean isAdmin = authentication.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN"));
+        
+        // Get the existing playlist to check ownership
+        Playlist existingPlaylist = playlistService.getPlaylist(playlistId);
+        if (existingPlaylist == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    CustomMessage.builder()
+                            .message("Playlist not found")
+                            .success(false)
+                            .build()
+            );
+        }
+        
+        // Check if user is authorized to modify this playlist
+        if (!currentUsername.equals(existingPlaylist.getUsername()) && !isAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                    CustomMessage.builder()
+                            .message("You don't have permission to modify this playlist")
+                            .success(false)
+                            .build()
+            );
+        }
+        
         Playlist updatedPlaylist = playlistService.removeVideoFromPlaylist(playlistId, videoId);
         
         if (updatedPlaylist != null) {

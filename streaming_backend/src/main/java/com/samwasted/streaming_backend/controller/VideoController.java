@@ -494,6 +494,23 @@ public ResponseEntity<?> create(
             );
         }
 
+        // Get the current authenticated user
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String currentUsername = authentication.getName();
+    boolean isAdmin = authentication.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ADMIN")); //checks admin role
+    
+    // Check if user is the owner or admin
+    if (!isAdmin && !video.getUsername().equals(currentUsername)) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                CustomMessage.builder()
+                        .message("You are not authorized to delete this video")
+                        .success(false)
+                        .build()
+        );
+    }
+
+
         try {
             // Delete HLS files
             Path hlsDirectory = Paths.get(HLS_DIR, videoId);
