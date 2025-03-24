@@ -127,23 +127,26 @@ public class VideoServiceImpl implements VideoService {
             // Build ffmpeg command for multiple resolutions
             StringBuilder ffmpegCmd = new StringBuilder();
             ffmpegCmd.append("ffmpeg -i \"")
-                    .append(videoPath.toString())
-                    .append("\" -c:v libx264 -c:a aac")
-                    .append(" ")
-                    .append("-map 0:v -map 0:a -s:v:0 640x360 -b:v:0 800k ")
-                    .append("-map 0:v -map 0:a -s:v:1 1280x720 -b:v:1 2800k ")
-                    .append("-map 0:v -map 0:a -s:v:2 1920x1080 -b:v:2 5000k ")
-                    .append("-var_stream_map \"v:0,a:0 v:1,a:1 v:2,a:2\" ")
-                    .append("-master_pl_name master.m3u8 ")
-                    .append("-f hls -hls_time 5 -hls_list_size 0 ") //changed to 5 sec from 10 sec segments
-                    .append("-hls_segment_filename \"")
-                    .append(HSL_DIR)
-                    .append(videoId)
-                    .append("/%v/segment_%03d.ts\" ")
-                    .append("\"")
-                    .append(HSL_DIR)
-                    .append(videoId)
-                    .append("/%v/playlist.m3u8\"");
+                     .append(videoPath.toString())
+                     .append("\" -c:v libx264 -c:a aac")
+                     .append(" ")
+                     // Use filter for variant 0 (width = 640)
+                     .append("-map 0:v -map 0:a -vf:v:0 \"scale=640:-2\" -b:v:0 800k ")
+                     // Variant 1 (width = 1280)
+                     .append("-map 0:v -map 0:a -vf:v:1 \"scale=1280:-2\" -b:v:1 2800k ")
+                     // Variant 2 (width = 1920)
+                     .append("-map 0:v -map 0:a -vf:v:2 \"scale=1920:-2\" -b:v:2 5000k ")
+                     .append("-var_stream_map \"v:0,a:0 v:1,a:1 v:2,a:2\" ")
+                     .append("-master_pl_name master.m3u8 ")
+                     .append("-f hls -hls_time 5 -hls_list_size 0 ")
+                     .append("-hls_segment_filename \"")
+                     .append(HSL_DIR)
+                     .append(videoId)
+                     .append("/%v/segment_%03d.ts\" ")
+                     .append("\"")
+                     .append(HSL_DIR)
+                     .append(videoId)
+                     .append("/%v/playlist.m3u8\"");
 
             String ffmpegCommand = ffmpegCmd.toString();
             System.out.println(ffmpegCommand);
