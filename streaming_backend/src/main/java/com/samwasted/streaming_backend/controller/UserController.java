@@ -1,4 +1,4 @@
-package com.samwasted.streaming_backend.rest;
+package com.samwasted.streaming_backend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.samwasted.streaming_backend.rest.dto.UserDto;
+import com.samwasted.streaming_backend.playload.UserDto;
 import com.samwasted.streaming_backend.security.CustomUserDetails;
 import com.samwasted.streaming_backend.user.User;
 import com.samwasted.streaming_backend.user.UserService;

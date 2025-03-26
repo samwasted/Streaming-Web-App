@@ -1,4 +1,4 @@
-package com.samwasted.streaming_backend.rest;
+package com.samwasted.streaming_backend.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.samwasted.streaming_backend.rest.dto.AuthResponse;
-import com.samwasted.streaming_backend.rest.dto.LoginRequest;
-import com.samwasted.streaming_backend.rest.dto.SignUpRequest;
+import com.samwasted.streaming_backend.playload.AuthResponse;
+import com.samwasted.streaming_backend.playload.LoginRequest;
+import com.samwasted.streaming_backend.playload.SignUpRequest;
 import com.samwasted.streaming_backend.security.SecurityConfig;
 import com.samwasted.streaming_backend.security.TokenProvider;
 import com.samwasted.streaming_backend.user.DuplicatedUserInfoException;

@@ -1,4 +1,4 @@
-package com.samwasted.streaming_backend.rest.dto;
+package com.samwasted.streaming_backend.playload;
 
 import java.time.Instant;
 import java.util.List;

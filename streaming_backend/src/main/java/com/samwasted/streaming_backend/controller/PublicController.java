@@ -1,4 +1,4 @@
-package com.samwasted.streaming_backend.rest;
+package com.samwasted.streaming_backend.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

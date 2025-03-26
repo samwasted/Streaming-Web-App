@@ -1,4 +1,4 @@
-package com.samwasted.streaming_backend.rest.dto;
+package com.samwasted.streaming_backend.playload;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
